@@ -1,3 +1,4 @@
-data/data_as_images
-data/data_and_script
 .DS_Store
+data/data_and_scripts
+data/data_as_images
+data/.DS_Store
