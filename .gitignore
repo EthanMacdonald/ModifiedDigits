@@ -2,3 +2,5 @@
 data/data_and_scripts
 data/data_as_images
 data/.DS_Store
+data/*.npy
+data/*.pyc
