@@ -3,7 +3,6 @@ import numpy as np
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.grid_search import GridSearchCV
-from sklearn.cross_validation import StratifiedKFold
 
 from data.get_data import get_data
 
@@ -17,6 +16,7 @@ params = [{}]
 
 train_limit = 5000
 test_limit = 5000
+kfolds = 3
 ################################################
 
 data = get_data()
@@ -24,7 +24,7 @@ data = get_data()
 if timer: start_time = time.time()
 if verbose: print "Start Training"
 log_reg = LogisticRegression()
-grid = GridSearchCV(log_reg, params, cv=3)
+grid = GridSearchCV(log_reg, params, cv=kfolds)
 grid.fit(data.train_inputs[:train_limit], data.train_outputs[:train_limit])
 if verbose: print "End Training"
 
