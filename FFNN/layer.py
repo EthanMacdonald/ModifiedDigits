@@ -3,9 +3,9 @@ import numpy as np
 from theano import *
 import theano.tensor as t
 
-class HiddenLayer(object):
+class Layer(object):
 	"""
-	A fully-connected hidden layer of a feedforward neural network with a 
+	A fully-connected layer of a feedforward neural network with a 
 	sigmoid activation function.
 	"""
 
@@ -46,7 +46,7 @@ class HiddenLayer(object):
 
 	def __init__(self, rng, input_data, input_n, output_n, W=None, b=None):
 		"""
-		Initializes the hidden layer.
+		Initializes the layer.
 	
 		Args:
 			rng: A numpy.random.RandomState used to generate initial weights.
@@ -57,7 +57,7 @@ class HiddenLayer(object):
 			output_n: An int representing the number of outputs to the next layer.
 			W: W is a theano matrix of weights with dimensions (input_n, output_n).
 				In other words, each column in W corresponds to the set of weights 
-				entering a particular node in the hidden layer. Likewise, each row 
+				entering a particular node in the current layer. Likewise, each row 
 				corresponds to the set of weights leaving a particular node in the 
 				previous layer.
 			b: theano bias vector of shape (output_n,)
@@ -77,4 +77,4 @@ class HiddenLayer(object):
 
 		if self.W is None: self._init_W()
 		if self.b is None: self._init_b()
-		output = self.activation(t.dot(self.input_data, self.W) + self.b)
+		self.output = self.activation(t.dot(self.input_data, self.W) + self.b)
