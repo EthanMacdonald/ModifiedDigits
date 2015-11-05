@@ -3,36 +3,68 @@ import numpy as np
 from theano import *
 import theano.tensor as t
 
-from ffnn.layer import Layer
+from layer import Layer
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.grid_search import GridSearchCV
 
 class FFNN(object):
 
-	def get_error(self):
-		#TODO
+	def __init__(self, rng, input_data, layer_ns):
+		"""
+		Initializes the feed forward neural network.
+	
+		Args:
+			rng: A numpy.random.RandomState used to generate initial weights.
+			input_data: A theano.tensor.dmatrix of dimensions (number of examples, layer_ns[0]) 
+				filled with the inputs from the images.
+			layer_ns: a list of ints representing how many nodes each layer should have
 
-	def __init__(self, rng, input_data, input_n, output_n, hidden_n):
+		Raises:
+			Nothing.
+		"""
 		
-		self.rng = rng # Random number generator
-		self.input_data = input_data # Input data
-		self.input_n = input_n # Size of input (this is a list)
-		self.output_n = output_n # Size of output (this is a list)
-		self.hidden_n = hidden_n # Number of hidden layers
-		# TODO: crunch input_n, output_n, and hidden_n into one list/array/matrix
+		self.rng = rng
+		self.current_output = input_data 
+		self.layer_ns = layer_ns
 
-		self.input_layer = Layer(rng=rng, input_data=self.input_data, input_n=input_n[i], output_n=input_n[i+1])
-		self.output = self.input_layer.output
+		self.layers = []
+		for i in range(len(layer_ns)-1):
+			self.layers += [Layer(rng=rng, input_data=self.current_output, input_n=self.layer_ns[i], output_n=self.layer_ns[i+1])]
+			self.current_output = self.layers[-1].output.eval()
 
-		self.hidden_layers = []
-		for i in range(hidden_n):
-			self.hidden_layers += Layer(rng=rng, input_data=self.output, input_n=input_n[i], output_n=input_n[i+1])
-			self.output = self.hidden_layers[-1].output
+		self.output_layer = LogisticRegression()
 
-		self.output_layer = Layer(rng=rng, input_data=self.output, input_n=input_n[hidden_n], output_n=input_n[hidden_n+1])
-		self.output = self.output_layer.output
+	def train_batch(self, batch_data, correct_output, step_size):
+		"""
+		Given a batch of data, train the network
+		"""
+		self.gradient_descent(self.backprop(self.forward_pass(batch_data), correct_output), step_size)
 
-		self.error = self.get_error()
+	def forward_pass(self, batch_data):
+		"""
+		Given a batch of data, propogate it through the network 
+		and return the output
+		"""
+		input_data = batch_data
+		for layer in self.layers:
+			input_data = layer.get_output(input_data)
+		return input_data
 
-	#TODO: Add more functions —— train, score, etc.
+	def backprop(self, observed, correct):
+		"""
+		Given an obeserved output and a correct output, calculate
+		the correction for each node in each layer.
+		Return a list of arrays, one for each layer.
+		"""
+		deltas = []
+		for i in range(len(observed)):
+			if i == 0:
+				deltas = []
+		return True
+
+	def gradient_descent(self, deltas, step_size):
+		"""
+		Given a set of deltas and a step size, perform gradient descent on each weight.
+		"""
+		return True

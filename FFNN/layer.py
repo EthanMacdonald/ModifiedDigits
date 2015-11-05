@@ -21,9 +21,11 @@ class Layer(object):
 		"""
 		high = 4*numpy.sqrt(6./(self.input_n+self.output_n))
 		low = -1*high
+		print high, low
+		print (self.input_data.shape[1], self.output_n)
 		self.W = theano.shared(
-					value = np.asarray(self.rng.uniform(high=high, low=low, size=shape), 
-					dtype = theano.config.floatX), 
+					value = np.asarray(self.rng.uniform(high=high, low=low, size=(self.input_data.shape[1], self.output_n)), 
+					dtype = theano.config.floatX),
 					name = 'W',
 					borrow = True
 				)
@@ -39,7 +41,7 @@ class Layer(object):
 			Nothing.
 		"""
 		self.b = theano.shared(
-				value = np.zeros((output_n,), dtype=theano.config.floatX),
+				value = np.zeros((self.output_n,), dtype=theano.config.floatX),
 				name = 'b',
 				borrow = True
 				)
@@ -73,8 +75,22 @@ class Layer(object):
 		self.output_n = output_n
 		self.W = W
 		self.b = b
-		self.activation = theano.tensor.nnet.sigmoid #TODO: Support for other activation functions?
+		self.activation = theano.tensor.nnet.sigmoid #TODO: Support for other activation functions?/non-theano implementation?
 
 		if self.W is None: self._init_W()
 		if self.b is None: self._init_b()
 		self.output = self.activation(t.dot(self.input_data, self.W) + self.b)
+
+	def get_output(self, input_data):
+		"""
+		Calculates output for a given input. Updates self.input_data and self.output in the process.
+
+		Args:
+			input_data: np.array with dimensions (self.input_data.shape[1], self.input_n)
+
+		Returns:
+			theano.tensor.var.TensorVariable
+		"""
+		self.input_data = input_data
+		self.output = self.activation(t.dot(self.input_data, self.W) + self.b)
+		return self.output
