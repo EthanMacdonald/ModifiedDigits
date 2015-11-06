@@ -39,7 +39,8 @@ class FFNN(object):
 		"""
 		Given a batch of data, train the network
 		"""
-		self.gradient_descent(self.backprop(self.forward_pass(batch_data), correct_output), step_size)
+		self.backprop(self.forward_pass(batch_data), correct_output)
+		self.gradient_descent(step_size)
 
 	def forward_pass(self, batch_data):
 		"""
@@ -62,7 +63,7 @@ class FFNN(object):
 			correct: np.ndarray of shape (self.input_data.shape[0], 10)
 
 		Returns:
-			list of size len(self.layer_ns) containing np.ndarrays of shape self.layer_ns[i]
+			list of size len(self.layer_ns) containing np.ndarrays of shape (self.layer_ns[i],)
 		"""
 		# TODO: This is spitting out numbers in the correct format, but are their values correct?
 		last_delta = np.sum(((correct - observed)*observed*(1-observed)).eval(), axis=0)
@@ -80,8 +81,16 @@ class FFNN(object):
 		
 		return deltas
 
-	def gradient_descent(self, deltas, step_size):
+	def gradient_descent(self, step_size):
 		"""
 		Given a set of deltas and a step size, perform gradient descent on each weight.
 		"""
-		return True #TODO
+		# TODO: This is also spitting out numbers in the correct format, but are the values correct?
+		for i in range(len(self.layers)-1,0,-1):
+			layer_n = self.layers[i].layer_n
+			inputs = np.array([np.sum(self.layers[i].input_data.eval(), axis=0),]*layer_n)
+			self.layers[i].W = self.layers[i].W + step_size*self.layers[i].deltas*np.transpose(inputs)
+
+		layer_n = self.layers[0].layer_n
+		inputs = np.array([np.sum(self.layers[0].input_data, axis=0),]*layer_n)
+		self.layers[0].W = self.layers[0].W + step_size*self.layers[0].deltas*np.transpose(inputs)

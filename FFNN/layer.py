@@ -55,12 +55,12 @@ class Layer(object):
 			input_n: An int representing the number of inputs from the previous
 				layer.
 			layer_n: An int representing how many nodes this layer should have.
-			W: W is a theano matrix of weights with dimensions (input_n, layer_n).
+			W: W is a matrix of weights with dimensions (input_n, layer_n).
 				In other words, each column in W corresponds to the set of weights 
 				entering a particular node in the current layer. Likewise, each row 
 				corresponds to the set of weights leaving a particular node in the 
 				previous layer.
-			b: theano bias vector of shape (layer_n,)
+			b: bias vector of shape (layer_n,)
 			activation: theano op or function used as the activation function
 
 		Raises:
