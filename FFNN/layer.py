@@ -19,12 +19,10 @@ class Layer(object):
 		Raises:
 			Nothing.
 		"""
-		high = 4*numpy.sqrt(6./(self.input_n+self.output_n))
+		high = 4*numpy.sqrt(6./(self.input_n+self.layer_n))
 		low = -1*high
-		print high, low
-		print (self.input_data.shape[1], self.output_n)
 		self.W = theano.shared(
-					value = np.asarray(self.rng.uniform(high=high, low=low, size=(self.input_data.shape[1], self.output_n)), 
+					value = np.asarray(self.rng.uniform(high=high, low=low, size=(self.input_data.shape[1], self.layer_n)), 
 					dtype = theano.config.floatX),
 					name = 'W',
 					borrow = True
@@ -41,12 +39,12 @@ class Layer(object):
 			Nothing.
 		"""
 		self.b = theano.shared(
-				value = np.zeros((self.output_n,), dtype=theano.config.floatX),
+				value = np.zeros((self.layer_n,), dtype=theano.config.floatX),
 				name = 'b',
 				borrow = True
 				)
 
-	def __init__(self, rng, input_data, input_n, output_n, W=None, b=None):
+	def __init__(self, rng, input_data, input_n, layer_n, W=None, b=None):
 		"""
 		Initializes the layer.
 	
@@ -56,13 +54,13 @@ class Layer(object):
 				filled with the inputs from the previous layer.
 			input_n: An int representing the number of inputs from the previous
 				layer.
-			output_n: An int representing the number of outputs to the next layer.
-			W: W is a theano matrix of weights with dimensions (input_n, output_n).
+			layer_n: An int representing how many nodes this layer should have.
+			W: W is a theano matrix of weights with dimensions (input_n, layer_n).
 				In other words, each column in W corresponds to the set of weights 
 				entering a particular node in the current layer. Likewise, each row 
 				corresponds to the set of weights leaving a particular node in the 
 				previous layer.
-			b: theano bias vector of shape (output_n,)
+			b: theano bias vector of shape (layer_n,)
 			activation: theano op or function used as the activation function
 
 		Raises:
@@ -72,7 +70,7 @@ class Layer(object):
 		self.rng = rng
 		self.input_data = input_data
 		self.input_n = input_n
-		self.output_n = output_n
+		self.layer_n = layer_n
 		self.W = W
 		self.b = b
 		self.activation = theano.tensor.nnet.sigmoid #TODO: Support for other activation functions?/non-theano implementation?
