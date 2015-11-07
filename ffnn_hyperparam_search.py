@@ -44,6 +44,7 @@ batch_size = 50
 best_score = 0.0
 best_params = None
 best_model = None
+avg_time = 0
 
 models = [(architecture, step_size, termination) for architecture in params['layer_ns'] for step_size in params['step_size'] for termination in params['termination']]
 
@@ -57,6 +58,7 @@ for i in range(number_of_models):
 	models.remove((architecture, step_size, termination))
 	current_params = {'layer_ns': architecture, 'step_size': step_size, 'termination': termination, 'batch_size': batch_size, 'max_example': max_example}
 	print "##########################################################################"
+	print "Model #%d" % remaining_models
 	print current_params
 	print "##########################################################################"
 	start = time.time()
@@ -75,6 +77,7 @@ for i in range(number_of_models):
 		epoch += 1
 		epoch_start = time.time()
 	score_avg = sum(scores)/len(scores)
+	current_params['score_avg'] = score_avg
 	print "Score average: " + str(score_avg)
 	if score_avg > best_score:
 		print "NEW MAX SCORE: " + str(score_avg) 
@@ -85,7 +88,10 @@ for i in range(number_of_models):
 			out.write('\n')
 	remaining_models -= 1
 	print "Total time: " + str((time.time() - start))
-	print "Estimated remining time: " + str((time.time() - start)*remaining_models)
+	n = (number_of_models - remaining_models)
+	avg_time = (n-1)*avg_time/n + (time.time() - start)
+	print "Average time: " + str(avg_time)
+	print "Estimated remining time: " + str(avg_time*remaining_models)
 
 print "##########################################################################"
 print "Best Score:"

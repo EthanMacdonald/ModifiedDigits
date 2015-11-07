@@ -40,6 +40,8 @@ class FFNN(BaseEstimator):
 			self.layers += [Layer(rng=rng, input_data=self.current_output, input_n=self.layer_ns[i-1], layer_n=layer_ns[i])]
 			self.current_output = self.layers[-1].output
 
+		print "Layers: %d" % len(self.layers)
+
 	def forward_pass(self, batch_data):
 		"""
 		Given a batch of data, propogate it through the network 

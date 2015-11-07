@@ -3,3 +3,7 @@
 {"step_size": 0.01, "score": 0.098699995278865582, "layer_ns": [2304, 1000, 10], "termination": 0.01}
 {"termination": 1, "max_example": null, "layer_ns": [10, 1810, 10], "step_size": 0.1, "batch_size": 50}
 {"termination": 1e-06, "max_example": null, "layer_ns": [410, 810, 10], "step_size": 0.0001, "batch_size": 50}
+{"termination": 1e-07, "max_example": null, "layer_ns": [1060, 1210, 2010, 10], "step_size": 0.01, "batch_size": 50}
+{"termination": 0.0001, "max_example": null, "layer_ns": [360, 1460, 1160, 10], "step_size": 0.01, "batch_size": 50}
+{"termination": 0.01, "max_example": null, "layer_ns": [160, 1860, 10], "step_size": 1e-06, "batch_size": 50}
+{"termination": 10, "max_example": null, "layer_ns": [1660, 910, 10], "step_size": 10, "batch_size": 50}
