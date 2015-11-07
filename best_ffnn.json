@@ -1,2 +1,5 @@
 {"step_size": 1, "score": 0.092000000000000012, "layer_ns": [10, 510, 10], "termination": 10}
 {"step_size": 10, "score": 0.098666666666666666, "layer_ns": [10, 1010, 10], "termination": 0.1}
+{"step_size": 0.01, "score": 0.098699995278865582, "layer_ns": [2304, 1000, 10], "termination": 0.01}
+{"termination": 1, "max_example": null, "layer_ns": [10, 1810, 10], "step_size": 0.1, "batch_size": 50}
+{"termination": 1e-06, "max_example": null, "layer_ns": [410, 810, 10], "step_size": 0.0001, "batch_size": 50}

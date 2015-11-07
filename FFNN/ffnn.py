@@ -73,51 +73,6 @@ class FFNN(BaseEstimator):
 			last_delta = np.sum(np.sum(((1 - O)*O), axis=0)*np.transpose(last_W*last_delta), axis=0)
 			self.layers[i].deltas = last_delta
 			last_W = self.layers[i].W
-		
-	def score(self, X, y):
-		output = self.forward_pass(X)
-		output = self._to_one_hot(output)
-		score = self._diff_one_hots(output, y)
-		return np.sum(score)/len(score)
-
-	def _diff_one_hots(self, X, y):
-		score = np.zeros(len(X))
-		print len(X)
-		for i in range(len(X)):
-			if i == 0:
-				print X[i], y[i]
-				print np.array_equal(X[i], y[i])
-			if np.array_equal(X[i], y[i]):
-				score[i] = 1
-		return score
-
-	def _to_one_hot(self, X):
-		for row in X:
-			zeros = np.zeros(self.layer_ns[-1])
-			zeros[np.argmax(row)] = 1
-			row = zeros
-		return X
-
-	def fit(self, input_data, correct_output, batch_size=100, score=True):
-		"""
-		Train the network
-		"""
-		score_every = 10000/batch_size
-		j = 0
-		for i in range(batch_size, len(input_data), batch_size):
-			print "...training up to example %d" % i
-			self.backprop(self.forward_pass(input_data[i-batch_size:i]), correct_output[i-batch_size:i])
-			self.gradient_descent()
-			delta = np.sum(self.layers[-1].deltas, axis=0)
-			iters = 0
-			while (self.termination < (delta ** 2)) and (iters < 5):
-				self.backprop(self.forward_pass(input_data[i-batch_size:i]), correct_output[i-batch_size:i])
-				self.gradient_descent()
-				delta = np.sum(self.layers[-1].deltas, axis=0)
-				iters += 1
-			if ((j % score_every) == 0): 
-				print "%.10f" % self.score(self.test_inputs, self.test_outputs)
-			j += 1
 
 	def gradient_descent(self):
 		"""
@@ -128,3 +83,40 @@ class FFNN(BaseEstimator):
 			layer_n = self.layers[i].layer_n
 			inputs = np.array([np.sum(self.layers[i].input_data, axis=0),]*layer_n)
 			self.layers[i].W = self.layers[i].W + self.step_size*self.layers[i].deltas*np.transpose(inputs)
+		
+	def score(self, X, y):
+		output = self.forward_pass(X)
+		output = self._to_one_hot(output)
+		score = self._diff_one_hots(output, y)
+		return np.sum(score)/len(score)
+
+	def _diff_one_hots(self, X, y):
+		score = np.zeros(len(X))
+		for i in range(len(X)):
+			if np.array_equal(X[i], y[i]):
+				score[i] = 1
+		return score
+
+	def _to_one_hot(self, X):
+		new_X = []
+		for row in X:
+			zeros = np.zeros(len(row))
+			m = np.argmax(row)
+			zeros[m] = 1
+			new_X += [zeros]
+		return np.array(new_X)
+
+	def fit(self, input_data, correct_output, batch_size=100):
+		"""
+		Train the network
+		"""
+		for i in range(batch_size, len(input_data), batch_size):
+			self.backprop(self.forward_pass(input_data[i-batch_size:i]), correct_output[i-batch_size:i])
+			self.gradient_descent()
+			delta = np.sum(self.layers[-1].deltas, axis=0)
+			iters = 0
+			while (self.termination < (delta ** 2)) and (iters < 5):
+				self.backprop(self.forward_pass(input_data[i-batch_size:i]), correct_output[i-batch_size:i])
+				self.gradient_descent()
+				delta = np.sum(self.layers[-1].deltas, axis=0)
+				iters += 1

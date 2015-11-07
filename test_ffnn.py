@@ -5,6 +5,10 @@ from sklearn.cross_validation import KFold
 
 from ffnn.ffnn import FFNN
 
+################################################
+# Initialization/helper functions              #
+################################################
+
 train_inputs_path = 'data/train_inputs.npy'
 train_outputs_path = 'data/train_outputs_matrix.npy'
 test_inputs_path = 'data/test_inputs.npy'
@@ -14,6 +18,7 @@ train_inputs = np.load(train_inputs_path)
 train_outputs = np.load(train_outputs_path)
 test_inputs = np.load(test_inputs_path)
 test_outputs = np.load(test_outputs_path)
+
 
 def list_permutations(max_length, min_length, max_nodes, min_nodes, node_skip=100):
 	print "Generating permutations...."
@@ -40,44 +45,47 @@ best_score = 0.0
 best_params = None
 best_model = None
 
-#models = [(architecture, step_size, termination) for architecture in params['layer_ns'] for step_size in params['step_size'] for termination in params['termination']]
+models = [(architecture, step_size, termination) for architecture in params['layer_ns'] for step_size in params['step_size'] for termination in params['termination']]
 
-#number_of_models = len(models)
-#remaining_models = number_of_models
+number_of_models = len(models)
+remaining_models = number_of_models
 
-#print "Total number of models: " + str(number_of_models)
-
-models = [([train_inputs.shape[1], 1000,10], .01, .01)]
-number_of_models = 1
+print "Total number of models: " + str(number_of_models)
 
 for i in range(number_of_models):
 	architecture, step_size, termination = random.choice(models)
 	models.remove((architecture, step_size, termination))
+	current_params = {'layer_ns': architecture, 'step_size': step_size, 'termination': termination, 'batch_size': batch_size, 'max_example': max_example}
+	print "##########################################################################"
+	print current_params
+	print "##########################################################################"
 	start = time.time()
-	print "##########################################################################"
-	print {'layer_ns': architecture, 'step_size': step_size, 'termination': termination}
-	print "##########################################################################"
 	scores = []
+	epoch = 1
+	epoch_start = time.time()
 	for train_index, test_index in KFold(train_inputs[:max_example].shape[0], n_folds=3):
 		X_train, X_test = train_inputs[train_index], train_inputs[test_index]
 		y_train, y_test = train_outputs[train_index], train_outputs[test_index]
 		ffnn = FFNN(X_train[:batch_size], architecture, step_size, termination)
 		ffnn.fit(X_train, y_train, batch_size=batch_size)
 		score = ffnn.score(X_test, y_test)
-		print "Score: " + str(score)
+		print "Epoch " + str(epoch) + " score: " + str(score)
+		print "Epoch " + str(epoch) + " time: " + str(time.time() - epoch_start)
 		scores += [score]
+		epoch += 1
+		epoch_start = time.time()
 	score_avg = sum(scores)/len(scores)
 	print "Score average: " + str(score_avg)
 	if score_avg > best_score:
 		print "NEW MAX SCORE: " + str(score_avg) 
 		best_score = score_avg
-		best_params = {'score': best_score, 'layer_ns': architecture, 'step_size': step_size, 'termination': termination}
-		best_model = ffnn
+		best_params = current_params
 		with open('best_ffnn.json', 'a') as out:
 			json.dump(best_params, out)
 			out.write('\n')
 	remaining_models -= 1
-	#print "Estimated time remaining: " + str((time.time() - start)*remaining_models)
+	print "Total time: " + str((time.time() - start))
+	print "Estimated remining time: " + str((time.time() - start)*remaining_models)
 
 print "##########################################################################"
 print "Best Score:"
