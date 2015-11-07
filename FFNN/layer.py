@@ -74,6 +74,7 @@ class Layer(object):
 		self.W = W
 		self.b = b
 		self.activation = theano.tensor.nnet.sigmoid #TODO: Support for other activation functions?/non-theano implementation?
+		self.deltas = None
 
 		if self.W is None: self._init_W()
 		if self.b is None: self._init_b()
@@ -90,5 +91,16 @@ class Layer(object):
 			theano.tensor.var.TensorVariable
 		"""
 		self.input_data = input_data
-		self.output = self.activation(t.dot(self.input_data, self.W) + self.b)
+		self.output = self.activation(t.dot(self.input_data, self.W) + self.b).eval()
 		return self.output
+
+	def param_shapes(self):
+		shapes = {
+			'input_data': self.input_data.shape,
+			'input_n' : self.input_n,
+			'layer_n' :self.layer_n,
+			'W' :self.W.shape.eval(),
+			'b' :self.b.shape.eval(),
+			'deltas' :self.deltas.shape,
+		}
+		return shapes
