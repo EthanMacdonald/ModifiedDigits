@@ -1,7 +1,8 @@
 import numpy as np
 
 from theano import *
-import theano.tensor as t
+
+from scipy.special import expit
 
 class Layer(object):
 	"""
@@ -21,12 +22,7 @@ class Layer(object):
 		"""
 		high = 4*numpy.sqrt(6./(self.input_n+self.layer_n))
 		low = -1*high
-		self.W = theano.shared(
-					value = np.asarray(self.rng.uniform(high=high, low=low, size=(self.input_data.shape[1], self.layer_n)), 
-					dtype = theano.config.floatX),
-					name = 'W',
-					borrow = True
-				)
+		self.W = np.asarray(self.rng.uniform(high=high, low=low, size=(self.input_data.shape[1], self.layer_n)))
 
 	def _init_b(self):
 		"""
@@ -38,11 +34,7 @@ class Layer(object):
 		Raises:
 			Nothing.
 		"""
-		self.b = theano.shared(
-				value = np.zeros((self.layer_n,), dtype=theano.config.floatX),
-				name = 'b',
-				borrow = True
-				)
+		self.b = np.zeros((self.layer_n,))
 
 	def __init__(self, rng, input_data, input_n, layer_n, W=None, b=None):
 		"""
@@ -73,12 +65,12 @@ class Layer(object):
 		self.layer_n = layer_n
 		self.W = W
 		self.b = b
-		self.activation = theano.tensor.nnet.sigmoid #TODO: Support for other activation functions?/non-theano implementation?
+		self.activation = lambda x: expit(x) #TODO: Support for other activation functions?/non-theano implementation?
 		self.deltas = None
 
 		if self.W is None: self._init_W()
 		if self.b is None: self._init_b()
-		self.output = self.activation(t.dot(self.input_data, self.W) + self.b)
+		self.output = self.activation(np.dot(self.input_data, self.W) + self.b)
 
 	def get_output(self, input_data):
 		"""
@@ -91,7 +83,7 @@ class Layer(object):
 			theano.tensor.var.TensorVariable
 		"""
 		self.input_data = input_data
-		self.output = self.activation(t.dot(self.input_data, self.W) + self.b).eval()
+		self.output = self.activation(np.dot(self.input_data, self.W) + self.b)
 		return self.output
 
 	def param_shapes(self):
@@ -99,8 +91,8 @@ class Layer(object):
 			'input_data': self.input_data.shape,
 			'input_n' : self.input_n,
 			'layer_n' :self.layer_n,
-			'W' :self.W.shape.eval(),
-			'b' :self.b.shape.eval(),
+			'W' :self.W.shape,
+			'b' :self.b.shape,
 			'deltas' :self.deltas.shape,
 		}
 		return shapes
