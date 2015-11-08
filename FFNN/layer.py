@@ -72,7 +72,7 @@ class Layer(object):
 		if self.b is None: self._init_b()
 		self.output = self.activation(np.dot(self.input_data, self.W) + self.b)
 
-	def get_output(self, input_data):
+	def get_output(self, input_data, dropout):
 		"""
 		Calculates output for a given input. Updates self.input_data and self.output in the process.
 
@@ -84,6 +84,8 @@ class Layer(object):
 		"""
 		self.input_data = input_data
 		self.output = self.activation(np.dot(self.input_data, self.W) + self.b)
+		if dropout: 
+			self.output *= np.random.binomial(1,1.0-dropout,self.output.shape)
 		return self.output
 
 	def param_shapes(self):

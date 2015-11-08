@@ -1,2 +1,2 @@
-{"step_size": 10, "score": 0.029999999999999999, "layer_ns": [1010, 1010, 10], "termination": 10}
-{"step_size": 0.1, "score": 0.10299999999999999, "layer_ns": [510, 510, 10], "termination": 0.1}
+{"score": 0.1086201304895059, "train_time": "3.75335597992", "max_example": null, "layer_ns": [10], "batch_size": 50, "score_avg": 0.1086201304895059, "step_size": 1, "termination": 0.0001}
+{"score": 0.1105001156907139, "train_time": "12.5337371826", "max_example": null, "layer_ns": [10], "batch_size": 50, "score_avg": 0.1105001156907139, "step_size": 10, "termination": 0.0001, "dropout": 0.0}

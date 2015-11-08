@@ -21,21 +21,20 @@ test_outputs = np.load(test_outputs_path)
 
 
 def list_permutations(max_length, min_length, max_nodes, min_nodes, node_skip=100):
-	print "Generating permutations...."
 	lst = []
 	for i in range(min_length, max_length):
 		lst += [list(x) + [10] for x in itertools.product(range(min_nodes, max_nodes, node_skip), repeat=i)]
-	print "Done permutations..."
 	return lst
 
 ################################################
 # Configuration settings — change as necessary #
 ################################################
-layer_ns = list_permutations(max_length=3, min_length=1, max_nodes=2011, min_nodes=10, node_skip=50)
+layer_ns = list_permutations(max_length=1, min_length=0, max_nodes=2011, min_nodes=10, node_skip=100)
 params = {
 	"layer_ns": layer_ns, 
 	"step_size": [10,1,.1,.01,.001,.0001,.00001,.000001,.0000001], 
-	"termination": [10,1,.1,.01,.001,.0001,.00001,.000001,.0000001]
+	"termination": [10,1,.1,.01,.001,.0001,.00001,.000001,.0000001],
+	"dropout": [0.0, 0.1, 0.25, 0.4, 0.5, 0.6, 0.75]
 	}
 max_example = None
 batch_size = 50
@@ -46,7 +45,7 @@ best_params = None
 best_model = None
 avg_time = 0
 
-models = [(architecture, step_size, termination) for architecture in params['layer_ns'] for step_size in params['step_size'] for termination in params['termination']]
+models = [(architecture, step_size, termination, dropout) for architecture in params['layer_ns'] for step_size in params['step_size'] for termination in params['termination'] for dropout in params['dropout']]
 
 number_of_models = len(models)
 remaining_models = number_of_models
@@ -54,30 +53,32 @@ remaining_models = number_of_models
 print "Total number of models: " + str(number_of_models)
 
 for i in range(number_of_models):
-	architecture, step_size, termination = random.choice(models)
-	models.remove((architecture, step_size, termination))
-	current_params = {'layer_ns': architecture, 'step_size': step_size, 'termination': termination, 'batch_size': batch_size, 'max_example': max_example}
+	model = random.choice(models)
+	architecture, step_size, termination, dropout = model
+	models.remove(model)
+	current_params = {'layer_ns': architecture, 'step_size': step_size, 'termination': termination, 'batch_size': batch_size, 'max_example': max_example, 'dropout': dropout}
 	print "##########################################################################"
 	print "Model #%d" % remaining_models
 	print current_params
 	print "##########################################################################"
 	start = time.time()
 	scores = []
-	epoch = 1
-	epoch_start = time.time()
+	cv = 1
+	cv_start = time.time()
 	for train_index, test_index in KFold(train_inputs[:max_example].shape[0], n_folds=3):
 		X_train, X_test = train_inputs[train_index], train_inputs[test_index]
 		y_train, y_test = train_outputs[train_index], train_outputs[test_index]
-		ffnn = FFNN(X_train[:batch_size], architecture, step_size, termination)
+		ffnn = FFNN(X_train[:batch_size], architecture, step_size, termination, dropout=dropout)
 		ffnn.fit(X_train, y_train, batch_size=batch_size)
 		score = ffnn.score(X_test, y_test)
-		print "Epoch " + str(epoch) + " score: " + str(score)
-		print "Epoch " + str(epoch) + " time: " + str(time.time() - epoch_start)
+		print "CV " + str(cv) + " score: " + str(score)
+		print "CV " + str(cv) + " time: " + str(time.time() - cv_start)
 		scores += [score]
-		epoch += 1
-		epoch_start = time.time()
+		cv += 1
+		cv_start = time.time()
 	score_avg = sum(scores)/len(scores)
 	current_params['score_avg'] = score_avg
+	current_params['train_time'] = str((time.time() - start))
 	print "Score average: " + str(score_avg)
 	if score_avg > best_score:
 		print "NEW MAX SCORE: " + str(score_avg) 
@@ -88,8 +89,9 @@ for i in range(number_of_models):
 			out.write('\n')
 	remaining_models -= 1
 	print "Total time: " + str((time.time() - start))
-	n = (number_of_models - remaining_models)
-	avg_time = (n-1)*avg_time/n + (time.time() - start)
+	n = float((number_of_models - remaining_models))
+	print "n: %d" % n
+	avg_time = (((n-1.0)/n)*avg_time) + (time.time() - start)/n
 	print "Average time: " + str(avg_time)
 	print "Estimated remining time: " + str(avg_time*remaining_models)
 

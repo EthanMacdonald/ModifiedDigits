@@ -1,4 +1,4 @@
-import time
+import time, sys
 import numpy as np
 
 from layer import Layer
@@ -10,7 +10,7 @@ from sklearn.base import BaseEstimator
 
 class FFNN(BaseEstimator):
 
-	def __init__(self, input_data, layer_ns, step_size, termination, rng=np.random):
+	def __init__(self, input_data, layer_ns, step_size, termination, rng=np.random, dropout=0.0):
 		"""
 		Initializes the feed forward neural network.
 	
@@ -34,6 +34,7 @@ class FFNN(BaseEstimator):
 		self.layer_ns = layer_ns
 		self.step_size = step_size
 		self.termination = termination
+		self.dropout = dropout
 
 		self.layers = []
 		for i in range(0,len(layer_ns)):
@@ -42,14 +43,14 @@ class FFNN(BaseEstimator):
 
 		print "Layers: %d" % len(self.layers)
 
-	def forward_pass(self, batch_data):
+	def forward_pass(self, input_data):
 		"""
 		Given a batch of data, propogate it through the network 
 		and return the output
 		"""
-		input_data = batch_data
+		input_data *= np.random.binomial(1,1.0-self.dropout,input_data.shape)
 		for layer in self.layers:
-			input_data = layer.get_output(input_data)
+			input_data = layer.get_output(input_data, self.dropout)
 		return input_data
 
 	def backprop(self, observed, correct):
@@ -65,14 +66,17 @@ class FFNN(BaseEstimator):
 		Returns:
 			list of size len(self.layer_ns) containing np.ndarrays of shape (self.layer_ns[i],)
 		"""
-		# TODO: This is spitting out numbers in the correct format, but are their values correct?
-		last_delta = np.sum(((correct - observed)*observed*(1-observed)), axis=0)
+		partial = np.dot(observed,np.transpose(1-observed))
+		partial = np.dot(partial, (correct - observed))
+		last_delta = np.sum(partial, axis=0)
 		last_W = self.layers[-1].W
 		self.layers[-1].deltas = last_delta
 		# Calculate new deltas for each layer
 		for i in range(len(self.layers)-2,-1,-1):
 			O = self.layers[i].output
-			last_delta = np.sum(np.sum(((1 - O)*O), axis=0)*np.transpose(last_W*last_delta), axis=0)
+			wdelta = np.dot(last_W,last_delta)
+			obs = np.dot(np.transpose((1-O)),O)
+			last_delta = np.dot(obs,wdelta)
 			self.layers[i].deltas = last_delta
 			last_W = self.layers[i].W
 
@@ -112,13 +116,20 @@ class FFNN(BaseEstimator):
 		"""
 		Train the network
 		"""
-		for i in range(batch_size, len(input_data), batch_size):
-			self.backprop(self.forward_pass(input_data[i-batch_size:i]), correct_output[i-batch_size:i])
-			self.gradient_descent()
-			delta = np.sum(self.layers[-1].deltas, axis=0)
-			iters = 0
-			while (self.termination < (delta ** 2)) and (iters < 5):
+		epoch = 1
+		self.backprop(self.forward_pass(input_data), correct_output)
+		old_delta = np.sum(self.layers[-1].deltas)
+		new_delta = None
+		while (new_delta == None) or ((self.termination < abs(old_delta - new_delta)/len(input_data)) and (epoch < 100)):
+			print "Epoch " + str(epoch)
+			for i in range(batch_size, len(input_data), batch_size):
 				self.backprop(self.forward_pass(input_data[i-batch_size:i]), correct_output[i-batch_size:i])
 				self.gradient_descent()
-				delta = np.sum(self.layers[-1].deltas, axis=0)
-				iters += 1
+				sys.stdout.write(".")
+				sys.stdout.flush()
+			print " "
+			self.backprop(self.forward_pass(input_data), correct_output)
+			new_delta = np.sum(self.layers[-1].deltas)
+			print self.layers[-1].deltas
+			print abs(old_delta - new_delta)/len(self.layers[-1].deltas)
+			epoch += 1

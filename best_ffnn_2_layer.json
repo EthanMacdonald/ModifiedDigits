@@ -1,0 +1,5 @@
+{"train_time": "48.2799358368", "max_example": null, "layer_ns": [610, 10], "batch_size": 50, "score_avg": 0.093860000875105501, "step_size": 1e-07, "termination": 10}
+{"train_time": "102.737483978", "max_example": null, "layer_ns": [1110, 10], "batch_size": 50, "score_avg": 0.10146011888354578, "step_size": 0.1, "termination": 0.01}
+{"train_time": "217.562148094", "max_example": null, "layer_ns": [2010, 10], "batch_size": 50, "score_avg": 0.10455987808120953, "step_size": 1, "termination": 1e-06}
+{"train_time": "409.22893405", "max_example": null, "layer_ns": [1010, 10], "batch_size": 50, "score_avg": 0.1112597704844175, "step_size": 1e-05, "termination": 0.0001}
+{"train_time": "70.4351408482", "max_example": null, "layer_ns": [910, 10], "batch_size": 50, "score_avg": 0.098639985678625572, "step_size": 1e-05, "termination": 0.1, "dropout": 0.5}
