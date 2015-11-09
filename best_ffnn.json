@@ -21,3 +21,16 @@
 {"train_time": "290.885453939", "max_example": null, "layer_ns": [1510, 10], "batch_size": 50, "score_avg": 0.1048399192822576, "step_size": 1e-06, "termination": 0.0001, "dropout": 0.5}
 {"train_time": "21.1780471802", "max_example": null, "layer_ns": [210, 1410, 10], "batch_size": 50, "score_avg": 0.10214002728225767, "step_size": 1, "termination": 0.01, "dropout": 0.75}
 {"train_time": "46.4768807888", "max_example": null, "layer_ns": [310, 410, 10], "batch_size": 50, "score_avg": 0.10153999368110561, "step_size": 10, "termination": 10, "dropout": 0.4}
+{"train_time": "15.2715342045", "max_example": null, "layer_ns": [10], "batch_size": 50, "score_avg": 0.10021995167920954, "step_size": 0.001, "termination": 0.0001, "dropout": 0.25}
+{"train_time": "14.9839389324", "max_example": null, "layer_ns": [10], "batch_size": 50, "score_avg": 0.10319998568227363, "step_size": 0.1, "termination": 1e-05, "dropout": 0.75}
+{"train_time": "5.81415486336", "max_example": null, "layer_ns": [10], "batch_size": 50, "score_avg": 0.10115995928011356, "step_size": 1e-05, "termination": 1, "dropout": 0.6}
+{"train_time": "15.2440891266", "max_example": null, "layer_ns": [10], "batch_size": 50, "score_avg": 0.10415992808188958, "step_size": 0.1, "termination": 0.01, "dropout": 0.75}
+{"train_time": "29.0982999802", "max_example": null, "layer_ns": [10], "batch_size": 50, "score_avg": 0.10369998768271364, "step_size": 0.1, "termination": 1e-05, "dropout": 0.75}
+{"train_time": "39.9550340176", "max_example": null, "layer_ns": [10], "batch_size": 50, "score_avg": 0.10556005608556977, "step_size": 0.0001, "termination": 0.001, "dropout": 0.5}
+{"train_time": "229.637928009", "max_example": null, "layer_ns": [1510, 10], "batch_size": 50, "score_avg": 0.10578000008462569, "step_size": 1e-06, "termination": 1, "dropout": 0.4}
+{"train_time": "243.012842894", "max_example": null, "layer_ns": [210, 2010, 10], "batch_size": 50, "score_avg": 0.10278005408330571, "step_size": 0.001, "termination": 1e-06, "dropout": 0.6}
+{"train_time": "74.677850008", "max_example": null, "layer_ns": [110, 710, 10], "batch_size": 50, "score_avg": 0.10057996127968956, "step_size": 1e-05, "termination": 1e-05, "dropout": 0.4}
+{"train_time": "174.628020048", "max_example": null, "layer_ns": [310, 1210, 10], "batch_size": 50, "score_avg": 0.10143995248020156, "step_size": 0.001, "termination": 0.0001, "dropout": 0.4}
+{"train_time": "125.992749929", "max_example": null, "layer_ns": [710, 110, 10], "batch_size": 50, "score_avg": 0.10168002808190567, "step_size": 0.1, "termination": 0.1, "dropout": 0.5}
+{"train_time": "17.4003558159", "max_example": null, "layer_ns": [25, 10], "batch_size": 50, "score_avg": 0.098639985678625572, "step_size": 0.1, "termination": 0.1, "dropout": 0.0}
+{"train_time": "16.8213219643", "max_example": null, "layer_ns": [25, 10], "batch_size": 50, "score_avg": 0.098639985678625572, "step_size": 0.1, "termination": 0.1, "dropout": 0.0}

@@ -36,11 +36,13 @@ class FFNN(BaseEstimator):
 		self.termination = termination
 		self.dropout = dropout
 
-		self.layers = []
-		for i in range(0,len(layer_ns)):
+		self.layers = [Layer(rng=rng, input_data=self.current_output, input_n=self.layer_ns[0], layer_n=layer_ns[0], first=True)]
+		self.current_output = self.layers[-1].output
+		for i in range(1,len(layer_ns)):
 			self.layers += [Layer(rng=rng, input_data=self.current_output, input_n=self.layer_ns[i-1], layer_n=layer_ns[i])]
 			self.current_output = self.layers[-1].output
 
+		self.layers[-1].dropout = 0.0
 		print "Layers: %d" % len(self.layers)
 
 	def forward_pass(self, input_data):
@@ -66,17 +68,16 @@ class FFNN(BaseEstimator):
 		Returns:
 			list of size len(self.layer_ns) containing np.ndarrays of shape (self.layer_ns[i],)
 		"""
-		partial = np.dot(observed,np.transpose(1-observed))
-		partial = np.dot(partial, (correct - observed))
-		last_delta = np.sum(partial, axis=0)
+		partial = np.multiply(observed, np.subtract(1, observed))
+		last_delta = np.multiply(partial, np.subtract(correct,observed))
 		last_W = self.layers[-1].W
 		self.layers[-1].deltas = last_delta
 		# Calculate new deltas for each layer
 		for i in range(len(self.layers)-2,-1,-1):
 			O = self.layers[i].output
-			wdelta = np.dot(last_W,last_delta)
-			obs = np.dot(np.transpose((1-O)),O)
-			last_delta = np.dot(obs,wdelta)
+			wdelta = np.dot(last_W,np.transpose(last_delta))
+			obs = np.multiply(O, np.subtract(1, O))
+			last_delta = np.multiply(obs.flatten(),wdelta.flatten())
 			self.layers[i].deltas = last_delta
 			last_W = self.layers[i].W
 
@@ -87,8 +88,8 @@ class FFNN(BaseEstimator):
 		# TODO: This is also spitting out numbers in the correct format, but are the values correct?
 		for i in range(len(self.layers)-1,-1,-1):
 			layer_n = self.layers[i].layer_n
-			inputs = np.array([np.sum(self.layers[i].input_data, axis=0),]*layer_n)
-			self.layers[i].W = self.layers[i].W + self.step_size*self.layers[i].deltas*np.transpose(inputs)
+			inputs = np.asarray([self.layers[i].input_data.flatten()]*layer_n)
+			self.layers[i].W += self.step_size*np.dot(self.layers[i].deltas,inputs)
 		
 	def score(self, X, y):
 		output = self.forward_pass(X)
@@ -112,24 +113,21 @@ class FFNN(BaseEstimator):
 			new_X += [zeros]
 		return np.array(new_X)
 
-	def fit(self, input_data, correct_output, batch_size=100):
+	def fit(self, input_data, correct_output, valid_input, valid_output, batch_size=100):
 		"""
 		Train the network
 		"""
+
 		epoch = 1
-		self.backprop(self.forward_pass(input_data), correct_output)
-		old_delta = np.sum(self.layers[-1].deltas)
-		new_delta = None
-		while (new_delta == None) or ((self.termination < abs(old_delta - new_delta)/len(input_data)) and (epoch < 100)):
+		old_error = 10000000.
+		new_error = 1.
+		while (self.termination < old_error-new_error):
 			print "Epoch " + str(epoch)
 			for i in range(batch_size, len(input_data), batch_size):
 				self.backprop(self.forward_pass(input_data[i-batch_size:i]), correct_output[i-batch_size:i])
 				self.gradient_descent()
-				sys.stdout.write(".")
-				sys.stdout.flush()
-			print " "
-			self.backprop(self.forward_pass(input_data), correct_output)
-			new_delta = np.sum(self.layers[-1].deltas)
-			print self.layers[-1].deltas
-			print abs(old_delta - new_delta)/len(self.layers[-1].deltas)
+			score = self.score(valid_input, valid_output)
+			old_error = new_error
+			new_error = 1-score
+			print "Score: %.15f, Error: %.15f, Difference: %.15f" % (score, new_error, old_error-new_error)
 			epoch += 1

@@ -34,9 +34,9 @@ class Layer(object):
 		Raises:
 			Nothing.
 		"""
-		self.b = np.zeros((self.layer_n,))
+		self.b = np.ones((self.layer_n,))
 
-	def __init__(self, rng, input_data, input_n, layer_n, W=None, b=None):
+	def __init__(self, rng, input_data, input_n, layer_n, W=None, b=None, first=False):
 		"""
 		Initializes the layer.
 	
@@ -69,6 +69,7 @@ class Layer(object):
 		self.deltas = None
 
 		if self.W is None: self._init_W()
+		if first: self.W = np.ones((self.input_data.shape[1], self.layer_n))
 		if self.b is None: self._init_b()
 		self.output = self.activation(np.dot(self.input_data, self.W) + self.b)
 
@@ -84,8 +85,7 @@ class Layer(object):
 		"""
 		self.input_data = input_data
 		self.output = self.activation(np.dot(self.input_data, self.W) + self.b)
-		if dropout: 
-			self.output *= np.random.binomial(1,1.0-dropout,self.output.shape)
+		if dropout: self.output *= np.random.binomial(1,1.0-dropout,self.output.shape)
 		return self.output
 
 	def param_shapes(self):

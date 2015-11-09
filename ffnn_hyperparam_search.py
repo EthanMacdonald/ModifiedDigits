@@ -2,6 +2,7 @@ import itertools, pickle, time, json, random
 import numpy as np
 
 from sklearn.cross_validation import KFold
+from sklearn.decomposition import PCA
 
 from ffnn.ffnn import FFNN
 
@@ -9,16 +10,15 @@ from ffnn.ffnn import FFNN
 # Initialization/helper functions              #
 ################################################
 
-train_inputs_path = 'data/train_inputs.npy'
+train_inputs_path = 'data/train_inputs_pca.npy'
 train_outputs_path = 'data/train_outputs_matrix.npy'
-test_inputs_path = 'data/test_inputs.npy'
+test_inputs_path = 'data/test_inputs_pca.npy'
 test_outputs_path = 'data/test_outputs_matrix.npy'
 
 train_inputs = np.load(train_inputs_path)
 train_outputs = np.load(train_outputs_path)
 test_inputs = np.load(test_inputs_path)
 test_outputs = np.load(test_outputs_path)
-
 
 def list_permutations(max_length, min_length, max_nodes, min_nodes, node_skip=100):
 	lst = []
@@ -29,11 +29,11 @@ def list_permutations(max_length, min_length, max_nodes, min_nodes, node_skip=10
 ################################################
 # Configuration settings — change as necessary #
 ################################################
-layer_ns = list_permutations(max_length=1, min_length=0, max_nodes=2011, min_nodes=10, node_skip=100)
+layer_ns = list_permutations(max_length=3, min_length=1, max_nodes=2011, min_nodes=10, node_skip=100)
 params = {
 	"layer_ns": layer_ns, 
-	"step_size": [10,1,.1,.01,.001,.0001,.00001,.000001,.0000001], 
-	"termination": [10,1,.1,.01,.001,.0001,.00001,.000001,.0000001],
+	"step_size": [.1,.01,.001,.0001,.00001,.000001,.0000001], 
+	"termination": [.1,.01,.001,.0001,.00001,.000001,.0000001],
 	"dropout": [0.0, 0.1, 0.25, 0.4, 0.5, 0.6, 0.75]
 	}
 max_example = None
@@ -46,6 +46,7 @@ best_model = None
 avg_time = 0
 
 models = [(architecture, step_size, termination, dropout) for architecture in params['layer_ns'] for step_size in params['step_size'] for termination in params['termination'] for dropout in params['dropout']]
+models = [([25,10],.1,0.1,0.0)]
 
 number_of_models = len(models)
 remaining_models = number_of_models
@@ -69,7 +70,7 @@ for i in range(number_of_models):
 		X_train, X_test = train_inputs[train_index], train_inputs[test_index]
 		y_train, y_test = train_outputs[train_index], train_outputs[test_index]
 		ffnn = FFNN(X_train[:batch_size], architecture, step_size, termination, dropout=dropout)
-		ffnn.fit(X_train, y_train, batch_size=batch_size)
+		ffnn.fit(X_train, y_train, X_test, y_test, batch_size=batch_size)
 		score = ffnn.score(X_test, y_test)
 		print "CV " + str(cv) + " score: " + str(score)
 		print "CV " + str(cv) + " time: " + str(time.time() - cv_start)
