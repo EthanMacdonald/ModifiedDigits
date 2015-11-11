@@ -1,3 +1,0 @@
-{"train_time": "774.003672123", "max_example": null, "layer_ns": [1810, 110, 10], "batch_size": 50, "score_avg": 0.1066799052834496, "step_size": 1e-06, "termination": 0.01}
-{"train_time": "541.258430004", "max_example": null, "layer_ns": [1210, 110, 10], "batch_size": 50, "score_avg": 0.10721991368404961, "step_size": 1e-07, "termination": 0.01}
-{"train_time": "877.708202124", "max_example": null, "layer_ns": [1410, 310, 10], "batch_size": 50, "score_avg": 0.11186001168972182, "step_size": 1e-07, "termination": 0.001}

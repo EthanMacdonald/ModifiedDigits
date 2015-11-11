@@ -11,9 +11,9 @@ from ffnn.ffnn import FFNN
 ################################################
 
 train_inputs_path = 'data/train_inputs_pca.npy'
-train_outputs_path = 'data/train_outputs_matrix.npy'
+train_outputs_path = 'data/train_outputs.npy'
 test_inputs_path = 'data/test_inputs_pca.npy'
-test_outputs_path = 'data/test_outputs_matrix.npy'
+test_outputs_path = 'data/test_outputs.npy'
 
 train_inputs = np.load(train_inputs_path)
 train_outputs = np.load(train_outputs_path)
@@ -29,7 +29,7 @@ def list_permutations(max_length, min_length, max_nodes, min_nodes, node_skip=10
 ################################################
 # Configuration settings — change as necessary #
 ################################################
-layer_ns = list_permutations(max_length=3, min_length=1, max_nodes=2011, min_nodes=10, node_skip=100)
+layer_ns = list_permutations(max_length=3, min_length=0, max_nodes=2011, min_nodes=10, node_skip=100)
 params = {
 	"layer_ns": layer_ns, 
 	"step_size": [.1,.01,.001,.0001,.00001,.000001,.0000001], 
@@ -37,7 +37,7 @@ params = {
 	"dropout": [0.0, 0.1, 0.25, 0.4, 0.5, 0.6, 0.75]
 	}
 max_example = None
-batch_size = 50
+batch_size = 1
 ################################################
 
 best_score = 0.0
@@ -46,7 +46,7 @@ best_model = None
 avg_time = 0
 
 models = [(architecture, step_size, termination, dropout) for architecture in params['layer_ns'] for step_size in params['step_size'] for termination in params['termination'] for dropout in params['dropout']]
-models = [([25,10],.1,0.1,0.0)]
+#models = [([25,10],.0001,0.00000001,0.0)]
 
 number_of_models = len(models)
 remaining_models = number_of_models

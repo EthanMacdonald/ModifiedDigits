@@ -11,32 +11,11 @@ class Layer(object):
 	"""
 
 	def _init_W(self):
-		"""
-		Initialize W with rng.
-
-		Args:
-			Nothing.
-
-		Raises:
-			Nothing.
-		"""
 		high = 4*numpy.sqrt(6./(self.input_n+self.layer_n))
 		low = -1*high
-		self.W = np.asarray(self.rng.uniform(high=high, low=low, size=(self.input_data.shape[1], self.layer_n)))
+		self.W = np.asarray(self.rng.uniform(high=high, low=low, size=(self.layer_n, self.input_data.shape[0])))
 
-	def _init_b(self):
-		"""
-		Initalize b with rng.
-
-		Args:
-			Nothing.
-
-		Raises:
-			Nothing.
-		"""
-		self.b = np.ones((self.layer_n,))
-
-	def __init__(self, rng, input_data, input_n, layer_n, W=None, b=None, first=False):
+	def __init__(self, input_data, input_n, layer_n, W=None, b=None, first=False):
 		"""
 		Initializes the layer.
 	
@@ -59,42 +38,20 @@ class Layer(object):
 			Nothing.
 		"""
 
-		self.rng = rng
-		self.input_data = input_data
+		self.rng = np.random
+		self.input_data = np.append(input_data, [[1]], 0)
 		self.input_n = input_n
 		self.layer_n = layer_n
 		self.W = W
-		self.b = b
-		self.activation = lambda x: expit(x) #TODO: Support for other activation functions?/non-theano implementation?
+		self.activation = lambda x: 1.0/(1.0 + np.exp(-x))
 		self.deltas = None
 
 		if self.W is None: self._init_W()
-		if first: self.W = np.ones((self.input_data.shape[1], self.layer_n))
-		if self.b is None: self._init_b()
-		self.output = self.activation(np.dot(self.input_data, self.W) + self.b)
+		np.dot(self.W, self.input_data)
+		self.output = self.activation(np.dot(self.W, self.input_data))
 
 	def get_output(self, input_data, dropout):
-		"""
-		Calculates output for a given input. Updates self.input_data and self.output in the process.
-
-		Args:
-			input_data: np.array with dimensions (self.input_data.shape[1], self.input_n)
-
-		Returns:
-			theano.tensor.var.TensorVariable
-		"""
-		self.input_data = input_data
-		self.output = self.activation(np.dot(self.input_data, self.W) + self.b)
-		if dropout: self.output *= np.random.binomial(1,1.0-dropout,self.output.shape)
+		self.input_data = np.append(input_data, [[1]], 0)
+		self.output = self.activation(np.dot(self.W, self.input_data))
+		self.output *= np.random.binomial(1,1.0-dropout,self.output.shape)
 		return self.output
-
-	def param_shapes(self):
-		shapes = {
-			'input_data': self.input_data.shape,
-			'input_n' : self.input_n,
-			'layer_n' :self.layer_n,
-			'W' :self.W.shape,
-			'b' :self.b.shape,
-			'deltas' :self.deltas.shape,
-		}
-		return shapes
