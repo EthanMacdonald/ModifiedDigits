@@ -29,7 +29,7 @@ def list_permutations(max_length, min_length, max_nodes, min_nodes, node_skip=10
 ################################################
 # Configuration settings — change as necessary #
 ################################################
-layer_ns = list_permutations(max_length=3, min_length=0, max_nodes=2011, min_nodes=10, node_skip=100)
+layer_ns = list_permutations(max_length=3, min_length=1, max_nodes=51, min_nodes=10, node_skip=5)
 params = {
 	"layer_ns": layer_ns, 
 	"step_size": [.1,.01,.001,.0001,.00001,.000001,.0000001], 
