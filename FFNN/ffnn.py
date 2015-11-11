@@ -1,4 +1,4 @@
-import time
+import time, sys
 import numpy as np
 
 from layer import Layer
@@ -10,87 +10,54 @@ from sklearn.base import BaseEstimator
 
 class FFNN(BaseEstimator):
 
-	def __init__(self, input_data, layer_ns, step_size, termination, rng=np.random):
-		"""
-		Initializes the feed forward neural network.
-	
-		Args:
-			rng: A numpy.random.RandomState used to generate initial weights.
-			input_data: A theano.tensor.dmatrix of dimensions (number of examples, layer_ns[0]) 
-				filled with the inputs from the images.
-			layer_ns: a list of ints representing how many nodes each layer should have
-
-		Raises:
-			Nothing.
-		"""
-
-		test_inputs_path = '../data/test_inputs.npy'
-		test_outputs_path = '../data/test_outputs_matrix.npy'
-		self.test_inputs = np.load(test_inputs_path)
-		self.test_outputs = np.load(test_outputs_path)
-
-		self.rng = rng
-		self.current_output = input_data 
+	def __init__(self, input_data, layer_ns, step_size, termination, dropout=0.0):
+		self.input_data = input_data.T
 		self.layer_ns = layer_ns
 		self.step_size = step_size
 		self.termination = termination
-
+		self.dropout = dropout
+		self.current_output = self.input_data
 		self.layers = []
+
 		for i in range(0,len(layer_ns)):
-			self.layers += [Layer(rng=rng, input_data=self.current_output, input_n=self.layer_ns[i-1], layer_n=layer_ns[i])]
+			self.layers += [Layer(input_data=self.current_output, input_n=self.layer_ns[i-1], layer_n=layer_ns[i])]
 			self.current_output = self.layers[-1].output
 
-		print "Layers: %d" % len(self.layers)
+		self.layers[-1].dropout = 0.0
 
-	def forward_pass(self, batch_data):
-		"""
-		Given a batch of data, propogate it through the network 
-		and return the output
-		"""
-		input_data = batch_data
+	def forward_pass(self, input_data):
+		input_data *= np.random.binomial(1,1.0-self.dropout,input_data.shape)
 		for layer in self.layers:
-			input_data = layer.get_output(input_data)
+			input_data = layer.get_output(input_data, self.dropout)
 		return input_data
 
-	def backprop(self, observed, correct):
-		"""
-		Given an observed output and a correct output, calculate
-		the correction for each node in each layer.
-		Returns a list of arrays, one for each layer.
+	def _calculate_output_delta(self, O, y):
+		temp = np.subtract(1, O)
+		temp2 = np.subtract(y,O)
+		temp = np.multiply(O, temp)
+		temp = np.multiply(temp, temp2)
+		self.layers[-1].deltas = temp # Save output deltas
+		return temp
 
-		Args:
-			observed: np.ndarray of shape (self.input_data.shape[0], 10)
-			correct: np.ndarray of shape (self.input_data.shape[0], 10)
-
-		Returns:
-			list of size len(self.layer_ns) containing np.ndarrays of shape (self.layer_ns[i],)
-		"""
-		# TODO: This is spitting out numbers in the correct format, but are their values correct?
-		last_delta = np.sum(((correct - observed)*observed*(1-observed)), axis=0)
-		last_W = self.layers[-1].W
-		self.layers[-1].deltas = last_delta
+	def backprop(self, O, y):
+		last_delta = self._calculate_output_delta(O, y)
+		last_W = self.layers[-1].W.T[:-1]
 		# Calculate new deltas for each layer
 		for i in range(len(self.layers)-2,-1,-1):
 			O = self.layers[i].output
-			last_delta = np.sum(np.sum(((1 - O)*O), axis=0)*np.transpose(last_W*last_delta), axis=0)
+			wdelta = np.dot(last_W,last_delta)
+			obs = np.multiply(O, np.subtract(1, O))
+			last_delta = np.multiply(obs,wdelta)
+			last_W = self.layers[i].W.T[:-1]
 			self.layers[i].deltas = last_delta
-			last_W = self.layers[i].W
 
 	def gradient_descent(self):
-		"""
-		Given a set of deltas and a step size, perform gradient descent on each weight.
-		"""
-		# TODO: This is also spitting out numbers in the correct format, but are the values correct?
 		for i in range(len(self.layers)-1,-1,-1):
 			layer_n = self.layers[i].layer_n
-			inputs = np.array([np.sum(self.layers[i].input_data, axis=0),]*layer_n)
-			self.layers[i].W = self.layers[i].W + self.step_size*self.layers[i].deltas*np.transpose(inputs)
-		
-	def score(self, X, y):
-		output = self.forward_pass(X)
-		output = self._to_one_hot(output)
-		score = self._diff_one_hots(output, y)
-		return np.sum(score)/len(score)
+			inputs = np.hstack([self.layers[i].input_data]*layer_n).T
+			deltas = self.layers[i].deltas
+			dinputs = np.multiply(deltas,inputs)
+			self.layers[i].W += self.step_size*dinputs
 
 	def _diff_one_hots(self, X, y):
 		score = np.zeros(len(X))
@@ -108,17 +75,37 @@ class FFNN(BaseEstimator):
 			new_X += [zeros]
 		return np.array(new_X)
 
-	def fit(self, input_data, correct_output, batch_size=100):
+	def _from_one_hot(self, X):
+		new_X = []
+		for row in X:
+			new_X += [np.argmax(row)]
+		return np.array(new_X)
+
+	def score(self, X, y):
+		score = 0
+		for i in range(len(X)):
+			row = X[i]
+			Xr = self.forward_pass(row.reshape(len(row),1))
+			Xr = np.argmax(Xr)
+			yr = np.argmax(y[i])
+			if Xr == yr: score += 1
+		return float(score)/len(X)
+
+	def fit(self, input_data, correct_output, valid_input, valid_output, batch_size=100):
 		"""
 		Train the network
 		"""
-		for i in range(batch_size, len(input_data), batch_size):
-			self.backprop(self.forward_pass(input_data[i-batch_size:i]), correct_output[i-batch_size:i])
-			self.gradient_descent()
-			delta = np.sum(self.layers[-1].deltas, axis=0)
-			iters = 0
-			while (self.termination < (delta ** 2)) and (iters < 5):
-				self.backprop(self.forward_pass(input_data[i-batch_size:i]), correct_output[i-batch_size:i])
+
+		epoch = 1
+		old_error = 10000000.
+		new_error = 1.
+		while (self.termination < old_error-new_error):
+			print "Epoch " + str(epoch)
+			for i in range(0, len(input_data)-batch_size, batch_size):
+				self.backprop(self.forward_pass(input_data[i:i+batch_size].T), correct_output[i:i+batch_size].T)
 				self.gradient_descent()
-				delta = np.sum(self.layers[-1].deltas, axis=0)
-				iters += 1
+			score = self.score(valid_input, valid_output)
+			old_error = new_error
+			new_error = 1-score
+			print "Score: %.15f, Error: %.15f, Difference: %.15f" % (score, new_error, old_error-new_error)
+			epoch += 1
