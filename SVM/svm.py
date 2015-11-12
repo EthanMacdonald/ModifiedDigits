@@ -1,50 +1,78 @@
-import numpy as np
-from sklearn.decomposition import PCA
-
+from sklearn.svm import SVC
 from sklearn.grid_search import GridSearchCV
-from sklearn.cross_validation import StratifiedKFold
+import numpy as np
+import csv
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
 
 
-"""
-run pca
-## use SVMS with gaussian RBF kernels
-## two parameters:
-tweak cost of misclassification -- ie where to set the trade off between
-making the dividing hyperplane more complicated versus how much we want the plane to divide the training dataset exactly). 
-gamma -- i.e.e how tight we want the guassian rbf to be 
-"""
+train_in = np.load('../data/train_inputs.npy')#.reshape(-1, 1, 48, 48)
+
+train_out = np.load('../data/train_outputs.npy')
+test_in = np.load('../data/test_inputs.npy')#.reshape(-1, 1, 48, 48)
+test_out = np.load('../data/test_outputs.npy')
 
 
-
-DATA_PATH_TRAIN = "../DATA/data_as_images/train_images_subset" 
-DATA_PATH_TEST = "../DATA/data_as_images/text_images_subset"
-
-NUM_OF_TRAIN = 1000
-NUM_OF_TEST = 200
+c=2.0
+kernel = 'rbf'
+params=[]
 
 
-def read_data_run_pca(test=False):
-	X=[]
-	Y=[]
+def plot_confusion_matrix(cm, title, cmap=plt.cm.Blues):
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    target_names = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(5)
+    plt.xticks(tick_marks, target_names, rotation=45)
+    plt.yticks(tick_marks, target_names)
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
 
-	with open(DATA_PATH_TRAIN, 'r') as tr:
-		X.append(f.readline())
+def svm(X, Y, X_test, Y_test, pca=False):
 
-	with open(DATA_PATH_TEST, 'r') as te: 
-		Y.append(te.split(",")[1]
+	s = train_in.shape[0]
+	X_tr = X[0:4*s/5]
+	X_test = X[4*s/5:s]
 
-	##PCR REDUCTION FIRST 
+	Y_tr = Y[0:4*s/5]
+	Y_test = Y[4*s/5:s]
 
-	if (not test):
-		X = #array of images
-		pca = PCA(n_components=2)
-		X_reduced = pca.fit(X)
+	print X_tr.shape, "Xshape"
+	print Y_tr.shape, "Yshape"
+	print X_test.shape, "test X shape"
+	print Y_test.shape,"test Y shape"
+	##########################
+	param_grid = {'kernel':['rbf'], 'C':[1, 10], 'gamma':[.1,.01,.001]}
+	param_grid2 = {'kernel':['linear'], 'C':[1, 10]}
+	##########################
 
-		Y = 
+	grid = GridSearchCV(SVC(), param_grid=param_grid)
+	grid.fit(X_tr,Y_tr)
 
+	#clf = SVC(C=1.0, kernel='rbf',gamma=0.1)
+	#clf.fit(X_tr,Y_tr)
+	Y_predict = clf.predict(X_test)
+	print Y_predict, "asdfasdf"
 
-	
+	writer = csv.writer(open('svm_test.csv','w'))
+	writer.writerow([int(x) for x in Y_predict])
 
+	#print clf.score(X_test,Y_test)
 
-if __name__== 'main':
+	print("The best parameters are %s with a score of %0.2f"
+      % (grid.best_params_, grid.best_score_)) 
+
+	#title = grid.best_params_
+	##confusion matrix assembly:
+	#cm = confusion_matrix(Y_test, Y_predict)
+	#plot_confusion_matrix(cm,'%s'%title) 
+	#plt.show()
+
+	#plt.savefig("%s.png"),%(param)
+	#plt.savefig("hello")
+
+if __name__ == '__main__':
+	svm(train_in, train_out, test_in, test_out)
 
